@@ -1,8 +1,109 @@
 import type { NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
+import { useEffect, useState } from "react";
+import styles from "src/styles/Home.module.css";
+import useSWR from "swr";
+
+// 整数numsの配列と整数targetが与えられたとき、2つの数値の足し算がtargetになるようなインデックスを返す。
+
+// 各入力は正確に1つの解を持つと仮定してよく、同じ要素を2度使ってはならない。
+
+// また、同じ要素を2度使用してはならない。また、どのような順番で答えを返してもよい。
+
+// Input: (nums = [2, 7, 11, 15]), (target = 9);
+
+// const func = (nums: number[], target: number): number[] => {
+//   const sum = nums.map((num, i) => {
+//     if (num > target) {
+//       return;
+//     }
+
+//     const arr = nums.slice(i + 1);
+
+//     const newArr = arr.map((value) => {
+//       if (num + value === target) {
+//         return [num, value];
+//       }
+//     });
+
+//     return newArr.filter((item): item is NonNullable<typeof item> => {
+//       return item != null && item.length > 0;
+//     });
+//   });
+
+//   const answer = sum.filter((item): item is NonNullable<typeof item> => {
+//     return item != null && item.length > 0;
+//   });
+
+//   return [
+//     nums.indexOf(answer[0][0][0]),
+//     nums.indexOf(answer[0][0][1], nums.indexOf(answer[0][0][0]) + 1),
+//   ];
+// };
+
+// 整数xが与えられたとき、xが回文整数であればtrueを返す。
+// 整数が逆方向にも同じ読み方をするとき、回文である。
+// 例えば、121は回文であるが、123は回文でない
+
+// const func = (num: number) => {
+//   const str = num.toString();
+//   if (str.length === 1) {
+//     return true;
+//   }
+//   const count = str.length;
+
+//   const prevNum = str.slice(0, Math.floor(count / 2));
+//   const nextNum = str
+//     .slice(-Math.floor(count / 2))
+//     .split("")
+//     .reverse()
+//     .join("");
+
+//   if (prevNum === nextNum) {
+//     return true;
+//   }
+//   return false;
+// };
+
+// console.log(func(-41214));
+
+const fetcher = (url: string): Promise<any> => {
+  return fetch(url).then((res) => {
+    return res.json();
+  });
+};
+
+const Profile = () => {
+  const { data, error } = useSWR(
+    "https://jsonplaceholder.typicode.com/posts",
+    fetcher
+  );
+
+  if (error) return <div>failed to load</div>;
+  if (!data) return <div>loading...</div>;
+
+  // データをレンダリングする
+  return <div>hello {data[0].title}!</div>;
+};
+
+// const getUser = () => {
+//   const { data, error } = useSWR("/api/user/123", fetcher);
+
+//   return { data: data, error: error };
+// };
 
 const Home: NextPage = () => {
+  const [user, setUser] = useState<any>();
+  // useEffect(() => {
+  const { data, error } = useSWR(
+    "https://jsonplaceholder.typicode.com/posts",
+    fetcher
+  );
+  // const { user, error } = getUser();
+  // if (data) setUser(data);
+  // }, []);
+
   return (
     <div>
       <Head>
@@ -16,9 +117,10 @@ const Home: NextPage = () => {
           Welcome to <a href="https://nextjs.org">Next.js!</a>
         </h1>
 
-        <p>
+        <p className={styles.test}>
           Get started by editing <code>pages/index.tsx</code>
         </p>
+        <Profile />
 
         <div>
           <a href="https://nextjs.org/docs">
@@ -44,6 +146,7 @@ const Home: NextPage = () => {
           </a>
         </div>
       </main>
+      <p className="text-red-500">{data ? data[0].title : null}</p>
 
       <footer>
         <a
