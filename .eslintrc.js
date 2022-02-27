@@ -31,7 +31,7 @@ module.exports = {
     //関数式、関数宣言のどちらか一貫した構文を指定。expressionでは関数式を指定
     "func-style": ["error", "expression"],
     //アロー関数本体に必ず{}が必要
-    "arrow-body-style": ["error", "always"],
+    // "arrow-body-style": ["error", "always"],
     //特定のimportを禁止する。今回はreactのimportを禁止
     "no-restricted-imports": [
       "error",
@@ -114,4 +114,3 @@ module.exports = {
     },
   ],
 };
-
