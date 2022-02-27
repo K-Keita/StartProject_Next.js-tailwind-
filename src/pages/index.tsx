@@ -1,108 +1,45 @@
-import type { NextPage } from "next";
+import dayjs from "dayjs";
+import type { GetStaticProps, NextPage } from "next";
 import Head from "next/head";
 import Image from "next/image";
-import { useEffect, useState } from "react";
+import Link from "next/link";
+import { useCallback, useEffect, useState } from "react";
 import styles from "src/styles/Home.module.css";
 import useSWR from "swr";
 
-// 整数numsの配列と整数targetが与えられたとき、2つの数値の足し算がtargetになるようなインデックスを返す。
+const fetcher = async (url: string) => {
+  const res = await fetch(url);
+  if (!res.ok) {
+    throw new Error("エラーが発生しました");
+  }
 
-// 各入力は正確に1つの解を持つと仮定してよく、同じ要素を2度使ってはならない。
-
-// また、同じ要素を2度使用してはならない。また、どのような順番で答えを返してもよい。
-
-// Input: (nums = [2, 7, 11, 15]), (target = 9);
-
-// const func = (nums: number[], target: number): number[] => {
-//   const sum = nums.map((num, i) => {
-//     if (num > target) {
-//       return;
-//     }
-
-//     const arr = nums.slice(i + 1);
-
-//     const newArr = arr.map((value) => {
-//       if (num + value === target) {
-//         return [num, value];
-//       }
-//     });
-
-//     return newArr.filter((item): item is NonNullable<typeof item> => {
-//       return item != null && item.length > 0;
-//     });
-//   });
-
-//   const answer = sum.filter((item): item is NonNullable<typeof item> => {
-//     return item != null && item.length > 0;
-//   });
-
-//   return [
-//     nums.indexOf(answer[0][0][0]),
-//     nums.indexOf(answer[0][0][1], nums.indexOf(answer[0][0][0]) + 1),
-//   ];
-// };
-
-// 整数xが与えられたとき、xが回文整数であればtrueを返す。
-// 整数が逆方向にも同じ読み方をするとき、回文である。
-// 例えば、121は回文であるが、123は回文でない
-
-// const func = (num: number) => {
-//   const str = num.toString();
-//   if (str.length === 1) {
-//     return true;
-//   }
-//   const count = str.length;
-
-//   const prevNum = str.slice(0, Math.floor(count / 2));
-//   const nextNum = str
-//     .slice(-Math.floor(count / 2))
-//     .split("")
-//     .reverse()
-//     .join("");
-
-//   if (prevNum === nextNum) {
-//     return true;
-//   }
-//   return false;
-// };
-
-// console.log(func(-41214));
-
-const fetcher = (url: string): Promise<any> => {
-  return fetch(url).then((res) => {
-    return res.json();
-  });
+  return res.json();
 };
 
-const Profile = () => {
+export const useGetNews = () => {
   const { data, error } = useSWR(
-    "https://jsonplaceholder.typicode.com/posts",
+    "https://newsapi.org/v2/everything?q=apple&from=2022-02-26&to=2022-02-26&sortBy=popularity&apiKey=02b730b654a04b6d94b05ff0e6ecfae9",
     fetcher
   );
 
-  if (error) return <div>failed to load</div>;
-  if (!data) return <div>loading...</div>;
 
-  // データをレンダリングする
-  return <div>hello {data[0].title}!</div>;
-};
 
-// const getUser = () => {
-//   const { data, error } = useSWR("/api/user/123", fetcher);
+  return { data, error, isLoading: !data && !error };
+}
 
-//   return { data: data, error: error };
-// };
+// export const getStaticProps: GetStaticProps = () => {
+//   const { data, error } = useSWR(
+//     "https://newsapi.org/v2/everything?q=apple&from=2022-02-26&to=2022-02-26&sortBy=popularity&apiKey=02b730b654a04b6d94b05ff0e6ecfae9",
+//     fetcher
+//   );
+// }
 
 const Home: NextPage = () => {
-  const [user, setUser] = useState<any>();
-  // useEffect(() => {
-  const { data, error } = useSWR(
-    "https://jsonplaceholder.typicode.com/posts",
-    fetcher
-  );
-  // const { user, error } = getUser();
-  // if (data) setUser(data);
-  // }, []);
+  const { data, error, isLoading } = useGetNews();
+
+  if (error) return <div>failed to load</div>;
+  if (isLoading) return <div>loading...</div>;
+
 
   return (
     <div>
@@ -113,40 +50,28 @@ const Home: NextPage = () => {
       </Head>
 
       <main>
-        <h1 className="text-5xl">
-          Welcome to <a href="https://nextjs.org">Next.js!</a>
-        </h1>
+        <h1 className="text-5xl m-5">Welcome to News Site!</h1>
 
-        <p className={styles.test}>
-          Get started by editing <code>pages/index.tsx</code>
-        </p>
-        <Profile />
+        <div className="flex flex-wrap justify-around">
+          {data
+            ? data.articles.map((post) => {
+                return (
 
-        <div>
-          <a href="https://nextjs.org/docs">
-            <h2>Documentation &rarr;</h2>
-            <p>Find in-depth information about Next.js features and API.</p>
-          </a>
-
-          <a href="https://nextjs.org/learn">
-            <h2>Learn &rarr;</h2>
-            <p>Learn about Next.js in an interactive course with quizzes!</p>
-          </a>
-
-          <a href="https://github.com/vercel/next.js/tree/canary/examples">
-            <h2>Examples &rarr;</h2>
-            <p>Discover and deploy boilerplate example Next.js projects.</p>
-          </a>
-
-          <a href="https://vercel.com/new?utm_source=create-next-app&utm_medium=default-template&utm_campaign=create-next-app">
-            <h2>Deploy &rarr;</h2>
-            <p>
-              Instantly deploy your Next.js site to a public URL with Vercel.
-            </p>
-          </a>
+                  <Link key={post.title} href={post.url}>
+                    <a className="flex p-2 m-2 rounded-md border hover:bg-gray-300">
+                      <img className="block w-40 h-28" src={post.urlToImage} />
+                      <div className="mx-2 w-80">
+                        <p>{dayjs(post.publishedAt).format("YYYY-MM-DD")}</p>
+                        <h1 className="text-lg">{post.title}</h1>
+                        <p>{post.author}</p>
+                      </div>
+                    </a>
+                  </Link>
+                );
+              })
+            : null}
         </div>
       </main>
-      <p className="text-red-500">{data ? data[0].title : null}</p>
 
       <footer>
         <a
